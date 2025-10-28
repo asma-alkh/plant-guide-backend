@@ -1,5 +1,5 @@
 from rest_framework import serializers 
-from .models import Plant, Soil, Schedule, Favorite
+from .models import Plant, Soil, Schedule, Favorite, Category
 
 #  Soil Serializer
 class SoilSerializer(serializers.ModelSerializer):
@@ -29,4 +29,8 @@ class FavoriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Favorite
         fielda = '__all__'
-        
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        modelde : Category 
+        fields = '__all__'
