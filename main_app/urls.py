@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .views import PlantsIndex,PlantDetail, SoilIndex, SoilDetail, ScheduleIndex, ScheduleDetail, FavoriteIndex, FavoriteDetail
+from .views import PlantsIndex,PlantDetail, SoilIndex, SoilDetail, ScheduleIndex, ScheduleDetail, FavoriteIndex, FavoriteDetail, CategoryIndex
 
 urlpatterns = [
     path('plants/', PlantsIndex.as_view(), name='plants_index'),
@@ -11,4 +11,5 @@ urlpatterns = [
     path('schedules/<int:schedule_id>/', ScheduleDetail.as_view(), name='schedules_detail'),
     path('favorites/', FavoriteIndex.as_view(), name='favorites_index'),
     path('favorites/<int:favorite_id>/', FavoriteDetail.as_view(), name='favorites_detail'),
+    path('categories/', CategoryIndex.as_view(), name='category_index'),
 ]
