@@ -106,8 +106,8 @@ class ScheduleDetail(APIView):
 
 
     def put(self, request, schedule_id):
-        schedule = get_object_or_404(schedule, id=schedule_id)
-        serializer = ScheduleSerializer(Schedule, data=request.data)
+        schedule = get_object_or_404(Schedule, id=schedule_id)
+        serializer = ScheduleSerializer(schedule, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
@@ -116,4 +116,28 @@ class ScheduleDetail(APIView):
     def delete(self, request, schedule_id):
         schedule = get_object_or_404(Schedule, id=schedule_id)
         schedule.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+# Favorite
+class FavoriteIndex(APIView):
+    def get(self, request):
+        favorite = Favorite.objects.all()
+        serializer = FavoriteSerializer(favorite, many=True)
+        return Response(serializer.data)
+    
+    def post(self, request):
+        serializer = FavoriteSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class FavoriteDetail(APIView):
+    def get(self, request, favorite_id):
+        favorite = get_object_or_404(Favorite, id=favorite_id)
+        serializer = FavoriteSerializer(favorite)
+        return Response(serializer.data)
+    def delete(self, request, favorite_id):
+        favorite = get_object_or_404(Favorite, id=favorite_id)
+        favorite.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
