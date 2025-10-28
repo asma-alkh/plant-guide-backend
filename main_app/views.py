@@ -2,8 +2,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.shortcuts import get_object_or_404
-from .models import Plant, Soil, Schedule, Favorite
-from .serializers import PlantSerializer, SoilSerializer,ScheduleSerializer,FavoriteSerializer
+from .models import Plant, Soil, Schedule, Favorite, Category
+from .serializers import PlantSerializer, SoilSerializer,ScheduleSerializer,FavoriteSerializer,CategorySerializer 
 
 # Create your views here.
 # 🌿 View All Plants + Add New Plant CR 
@@ -141,3 +141,9 @@ class FavoriteDetail(APIView):
         favorite = get_object_or_404(Favorite, id=favorite_id)
         favorite.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+class CategoryIndex(APIView):
+    def get(self, request):
+        categories = Category.objects.all()
+        serializer = CategorySerializer(categories, many=True)
+        return Response(serializer.data)
