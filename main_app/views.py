@@ -14,45 +14,54 @@ class PlantsIndex(APIView):
         return Response(serializer.data)
     
     def post(self, request):
-        serializer = PlantSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            serializer = PlantSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as error:
+            return Response({'error': str(error)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 # Add RUD
 class PlantDetail(APIView):
     def get(self, request, plant_id):
-        plant = get_object_or_404(Plant, id=plant_id)
-        serializer = PlantSerializer(plant)
-        return Response(serializer.data)
+        try:
+            plant = get_object_or_404(Plant, id=plant_id)
+            serializer = PlantSerializer(plant)
+            return Response(serializer.data)
+        except Exception as error:
+            return Response({'error': str(error)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def put(self, request, plant_id):
-        plant = get_object_or_404(Plant, id=plant_id)
-        serializer = PlantSerializer(plant, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            plant = get_object_or_404(Plant, id=plant_id)
+            serializer = PlantSerializer(plant, data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as error:
+            return Response({'error': str(error)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def delete(self, request, plant_id):
-        plant = get_object_or_404(Plant, id=plant_id)
-        plant.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        try:
+            plant = get_object_or_404(Plant, id=plant_id)
+            plant.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except Exception as error:
+            return Response({'error': str(error)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class SoilIndex(APIView):
-    def get(self, requset):
+    def get(self, request):
         soils = Soil.objects.all()
-        serializer = SoilSerializer(data=requset.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer = SoilSerializer(soils, many=True)
+        return Response(serializer.data)
     
     def post(self, request):
         serializer = SoilSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.errors, status=status.HTTP_201_CREATED)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class SoilDetail(APIView):
@@ -74,3 +83,17 @@ class SoilDetail(APIView):
         soil = get_object_or_404(Soil, id=soil_id)
         soil.delete()    
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+# Schedule View (CRUD)
+class ScheduleIndex(APIView):
+    def get(self, request):
+        schedule = Schedule.objects.all()
+        serializer = ScheduleSerializer(schedule, many=True)
+        return Response(serializer.data)
+    
+    def post(self, request):
+        serializer = ScheduleSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
