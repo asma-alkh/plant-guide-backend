@@ -97,3 +97,23 @@ class ScheduleIndex(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class ScheduleDetail(APIView):
+    def get(self, request, schedule_id):
+        schedule = get_object_or_404(Schedule, id=schedule_id)
+        serializer = ScheduleSerializer(schedule)
+        return Response(serializer.data)
+
+
+    def put(self, request, schedule_id):
+        schedule = get_object_or_404(schedule, id=schedule_id)
+        serializer = ScheduleSerializer(Schedule, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def delete(self, request, schedule_id):
+        schedule = get_object_or_404(Schedule, id=schedule_id)
+        schedule.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
