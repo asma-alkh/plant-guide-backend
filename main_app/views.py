@@ -2,11 +2,35 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.shortcuts import get_object_or_404
+from django.contrib.auth import get_user_model, authenticate
+from django.contrib.auth.models import update_last_login
+from rest_framework.permissions import (
+    AllowAny,
+    IsAuthenticated,
+    IsAuthenticatedOrReadOnly,
+)
 from .models import Plant, Soil, Schedule, Favorite, Category
 from .serializers import PlantSerializer, SoilSerializer,ScheduleSerializer,FavoriteSerializer,CategorySerializer 
 
+
 # Create your views here.
-# 🌿 View All Plants + Add New Plant CR 
+User = get_user_model()
+
+class Home(APIView):
+    def get(self, request):
+        content = {
+            "message": "🌿 Welcome to the Plant Guide API!",
+            "info": "Here you can learn how to care for your plants."
+        }
+        return Response(content)
+    def post(self, request):
+        data = request.data
+        content = {
+            "message": "🌱 Thank you for connecting with Plant Guide!",
+            "your_data": data
+        }
+        return Response(content)
+#  View All Plants + Add New Plant CR 
 class PlantsIndex(APIView):
     def get(self, request):
         plants = Plant.objects.all()
@@ -147,3 +171,49 @@ class CategoryIndex(APIView):
         categories = Category.objects.all()
         serializer = CategorySerializer(categories, many=True)
         return Response(serializer.data)
+
+
+# Register (Sign Up)
+class RegisterView(APIView):
+    """
+    This endpoint allows new users to create an account.
+    Accessible by anyone (no authentication required).
+    """
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        username = request.data.get("username")
+        email = request.data.get("email")
+        password = request.data.get("password")
+
+        # Check required fields
+        if not username or not email or not password:
+            return Response(
+                {"error": "Please provide username, email, and password."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Check if username already exists
+        if User.objects.filter(username=username).exists():
+            return Response(
+                {"error": "This username is already taken."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Create new user
+        user = User.objects.create_user(
+            username=username,
+            email=email,
+            password=password 
+        )
+        return Response(
+            {
+                "message": "Account created successfully 🌿",
+                "user": {
+                    "id": user.id,
+                    "username": user.username,
+                    "email": user.email,
+                }
+            },
+            status=status.HTTP_201_CREATED
+        )
