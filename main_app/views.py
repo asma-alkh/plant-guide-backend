@@ -248,3 +248,28 @@ class LogInView(APIView):
                 {"error": "Invalid username or password."},
                 status=status.HTTP_401_UNAUTHORIZED
             )
+
+# Logout 
+class LogoutView(APIView):
+    """
+    Logout user by blacklisting their refresh token.
+    (User must be authenticated)
+    """  
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        try:
+            refresh_token = request.data.get("refresh_token")
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+
+            return Response(
+                {"message": "You have been logged out successfully "},
+                status=status.HTTP_200_OK
+            )
+        
+        except Exception as e:
+            return Response(
+                {"error": "Invalid or missing refresh token."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
