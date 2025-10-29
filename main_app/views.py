@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model, authenticate
-from django.contrib.auth.models import update_last_login
+from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import (
     AllowAny,
     IsAuthenticated,
@@ -217,3 +217,34 @@ class RegisterView(APIView):
             },
             status=status.HTTP_201_CREATED
         )
+# Login (Sign In)
+
+class LogInView(APIView):
+    """
+    Authenticate existing users and return a JWT token.
+    """
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        username = request.data.get("username")
+        password = request.data.get("username")
+
+        user = authenticate(username=username, password=password)
+
+        if user is not None:
+            # Generate JWT tokens
+            refresh = RefreshToken.for_user(user)
+
+            return Response(
+                {
+                    "message": f"Welcome back, {username}! 🌱",
+                    "access_token": str(refresh.access_token),
+                    "refresh_token": str(refresh),
+                },
+                status=status.HTTP_200_OK
+            )
+        else:
+            return Response(
+                {"error": "Invalid username or password."},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
