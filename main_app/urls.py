@@ -13,7 +13,7 @@ urlpatterns = [
     path('favorites/', FavoriteIndex.as_view(), name='favorites_index'),
     path('favorites/<int:favorite_id>/', FavoriteDetail.as_view(), name='favorites_detail'),
     path('categories/', CategoryIndex.as_view(), name='category_index'),
-    path('register/', RegisterView.as_view(), name='register'),
+    path('signup/', RegisterView.as_view(), name='register'),
     path('login/', LogInView.as_view(), name='login'), 
     path('logout/', LogoutView.as_view(), name='logout'),
 ]

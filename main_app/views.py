@@ -17,6 +17,7 @@ from .serializers import PlantSerializer, SoilSerializer,ScheduleSerializer,Favo
 User = get_user_model()
 
 class Home(APIView):
+    permission_classes = [AllowAny]
     def get(self, request):
         content = {
             "message": "🌿 Welcome to the Plant Guide API!",
@@ -32,6 +33,8 @@ class Home(APIView):
         return Response(content)
 #  View All Plants + Add New Plant CR 
 class PlantsIndex(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
         plants = Plant.objects.all()
         serializer = PlantSerializer(plants, many=True)
@@ -48,6 +51,8 @@ class PlantsIndex(APIView):
             return Response({'error': str(error)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 # Add RUD
 class PlantDetail(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request, plant_id):
         try:
             plant = get_object_or_404(Plant, id=plant_id)
@@ -76,6 +81,8 @@ class PlantDetail(APIView):
             return Response({'error': str(error)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class SoilIndex(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
         soils = Soil.objects.all()
         serializer = SoilSerializer(soils, many=True)
@@ -89,6 +96,8 @@ class SoilIndex(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class SoilDetail(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request, soil_id):
         soil = get_object_or_404(Soil, id=soil_id)
         serializer = SoilSerializer(soil)
@@ -110,19 +119,23 @@ class SoilDetail(APIView):
     
 # Schedule View (CRUD)
 class ScheduleIndex(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
-        schedule = Schedule.objects.all()
+        schedule = Schedule.objects.filter(user=request.user) 
         serializer = ScheduleSerializer(schedule, many=True)
         return Response(serializer.data)
     
     def post(self, request):
         serializer = ScheduleSerializer(data=request.data)
-        if serializer.is_valid():
+        if serializer.is_valid(user=request.user):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class ScheduleDetail(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request, schedule_id):
         schedule = get_object_or_404(Schedule, id=schedule_id)
         serializer = ScheduleSerializer(schedule)
@@ -144,19 +157,23 @@ class ScheduleDetail(APIView):
 
 # Favorite
 class FavoriteIndex(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
-        favorite = Favorite.objects.all()
+        favorite = Favorite.objects.filter(user=request.user)
         serializer = FavoriteSerializer(favorite, many=True)
         return Response(serializer.data)
     
     def post(self, request):
         serializer = FavoriteSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(user=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 class FavoriteDetail(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request, favorite_id):
         favorite = get_object_or_404(Favorite, id=favorite_id)
         serializer = FavoriteSerializer(favorite)
@@ -167,6 +184,8 @@ class FavoriteDetail(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 class CategoryIndex(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
         categories = Category.objects.all()
         serializer = CategorySerializer(categories, many=True)
@@ -227,7 +246,7 @@ class LogInView(APIView):
 
     def post(self, request):
         username = request.data.get("username")
-        password = request.data.get("username")
+        password = request.data.get("password")
 
         user = authenticate(username=username, password=password)
 
@@ -255,7 +274,8 @@ class LogoutView(APIView):
     Logout user by blacklisting their refresh token.
     (User must be authenticated)
     """  
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
+
 
     def post(self, request):
         try:

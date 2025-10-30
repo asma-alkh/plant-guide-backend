@@ -1,7 +1,8 @@
 from django.db import models
 from django.utils.text import slugify
+from django.contrib.auth import get_user_model
+User = get_user_model()
 # Create your models here.
-# first Model Plant 
 
 class Soil(models.Model):
     name = models.CharField(max_length=100)
@@ -29,8 +30,9 @@ class Plant(models.Model):
 
     def __str__(self):
         return self.name
-
+#(linked to User)
 class Schedule(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='schedules')
     plant = models.ForeignKey('Plant', on_delete=models.CASCADE, related_name='schedules')
     task_name = models.CharField(max_length=100) #Like Watering the plant or pruning the leaves
     date = models.DateField()
@@ -39,8 +41,9 @@ class Schedule(models.Model):
     def __str__(self):
         return f"{self.task_name} - {self.plant.name}"
     
-
+#(linked to User)
 class Favorite(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='favorites')
     plant = models.ForeignKey('Plant', on_delete=models.CASCADE, related_name='favorites')
     added_at = models.DateTimeField(auto_now_add=True)
 
