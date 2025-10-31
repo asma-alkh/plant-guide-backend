@@ -9,8 +9,8 @@ from rest_framework.permissions import (
     IsAuthenticated,
     IsAuthenticatedOrReadOnly,
 )
-from .models import Plant, Soil, Schedule, Favorite, Category
-from .serializers import PlantSerializer, SoilSerializer,ScheduleSerializer,FavoriteSerializer,CategorySerializer 
+from .models import Plant, Soil, Favorite, Category
+from .serializers import PlantSerializer, SoilSerializer,FavoriteSerializer,CategorySerializer 
 
 
 # Create your views here.
@@ -115,44 +115,6 @@ class SoilDetail(APIView):
     def delete(self, request, soil_id):
         soil = get_object_or_404(Soil, id=soil_id)
         soil.delete()    
-        return Response(status=status.HTTP_204_NO_CONTENT)
-    
-# Schedule View (CRUD)
-class ScheduleIndex(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        schedule = Schedule.objects.filter(user=request.user) 
-        serializer = ScheduleSerializer(schedule, many=True)
-        return Response(serializer.data)
-    
-    def post(self, request):
-        serializer = ScheduleSerializer(data=request.data)
-        if serializer.is_valid(user=request.user):
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-class ScheduleDetail(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request, schedule_id):
-        schedule = get_object_or_404(Schedule, id=schedule_id)
-        serializer = ScheduleSerializer(schedule)
-        return Response(serializer.data)
-
-
-    def put(self, request, schedule_id):
-        schedule = get_object_or_404(Schedule, id=schedule_id)
-        serializer = ScheduleSerializer(schedule, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-    def delete(self, request, schedule_id):
-        schedule = get_object_or_404(Schedule, id=schedule_id)
-        schedule.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 # Favorite
