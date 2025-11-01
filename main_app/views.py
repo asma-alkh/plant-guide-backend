@@ -9,8 +9,8 @@ from rest_framework.permissions import (
     IsAuthenticated,
     IsAuthenticatedOrReadOnly,
 )
-from .models import Plant, Soil, Favorite, Category
-from .serializers import PlantSerializer, SoilSerializer,FavoriteSerializer,CategorySerializer 
+from .models import Plant, Soil, Favorite, Category,Schedule
+from .serializers import PlantSerializer, SoilSerializer,FavoriteSerializer,CategorySerializer,ScheduleSerializer  
 
 
 # Create your views here.
@@ -117,6 +117,53 @@ class SoilDetail(APIView):
         soil.delete()    
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+class ScheduleIndex(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        schedules = Schedule.objects.filter(user=request.user)
+        serializer = ScheduleSerializer(schedules, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = ScheduleSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class ScheduleDetail(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self, pk, user):
+        try:
+            return Schedule.objects.get(pk=pk, user=user)
+        except Schedule.DoesNotExist:
+            return None
+
+    def get(self, request, pk):
+        schedule = self.get_object(pk, request.user)
+        if not schedule:
+            return Response({"error": "Not found"}, status=status.HTTP_404_NOT_FOUND)
+        serializer = ScheduleSerializer(schedule)
+        return Response(serializer.data)
+
+    def put(self, request, pk):
+        schedule = self.get_object(pk, request.user)
+        if not schedule:
+            return Response({"error": "Not found"}, status=status.HTTP_404_NOT_FOUND)
+        serializer = ScheduleSerializer(schedule, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        schedule = self.get_object(pk, request.user)
+        if not schedule:
+            return Response({"error": "Not found"}, status=status.HTTP_404_NOT_FOUND)
+        schedule.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 # Favorite
 class FavoriteIndex(APIView):
     permission_classes = [IsAuthenticated]
