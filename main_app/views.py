@@ -1,4 +1,5 @@
 from rest_framework.views import APIView
+from django.db import IntegrityError
 from rest_framework.response import Response
 from rest_framework import status
 from django.shortcuts import get_object_or_404
@@ -9,8 +10,9 @@ from rest_framework.permissions import (
     IsAuthenticated,
     IsAuthenticatedOrReadOnly,
 )
-from .models import Plant, Soil, Favorite, Category,Schedule
-from .serializers import PlantSerializer, SoilSerializer,FavoriteSerializer,CategorySerializer,ScheduleSerializer  
+from .models import Plant, Soil, Favorite, Category,Schedule, UserPlant, Profile
+from .serializers import PlantSerializer, SoilSerializer,FavoriteSerializer,CategorySerializer,ScheduleSerializer, UserPlantSerializer, ProfileSerializer
+
 
 
 # Create your views here.
@@ -52,6 +54,7 @@ class PlantsIndex(APIView):
 # Add RUD
 class PlantDetail(APIView):
     permission_classes = [IsAuthenticated]
+
 
     def get(self, request, plant_id):
         try:
@@ -169,17 +172,24 @@ class FavoriteIndex(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        favorite = Favorite.objects.filter(user=request.user)
-        serializer = FavoriteSerializer(favorite, many=True)
+        favorites = Favorite.objects.filter(user=request.user)
+        serializer = FavoriteSerializer(favorites, many=True)
         return Response(serializer.data)
     
     def post(self, request):
         serializer = FavoriteSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(user=request.user)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            try:
+                serializer.save(user=request.user)
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            except IntegrityError:
+                return Response(
+                    {"error": "This plant is already in your favorites!"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
+
 class FavoriteDetail(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -187,6 +197,7 @@ class FavoriteDetail(APIView):
         favorite = get_object_or_404(Favorite, id=favorite_id)
         serializer = FavoriteSerializer(favorite)
         return Response(serializer.data)
+
     def delete(self, request, favorite_id):
         favorite = get_object_or_404(Favorite, id=favorite_id)
         favorite.delete()
@@ -302,3 +313,69 @@ class LogoutView(APIView):
                 {"error": "Invalid or missing refresh token."},
                 status=status.HTTP_400_BAD_REQUEST
             )
+class UserPlantIndex(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get(self, request):
+        user_plants = UserPlant.objects.all().order_by('-created_at')
+        serializer = UserPlantSerializer(user_plants, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        if not request.user.is_authenticated:
+            return Response(
+                {"error": "You must log in to add a plant."},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+        serializer = UserPlantSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class UserPlantDetail(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get(self, request, plant_id):
+        plant = get_object_or_404(UserPlant, id=plant_id)
+        serializer = UserPlantSerializer(plant)
+        return Response(serializer.data)
+
+    def put(self, request, plant_id):
+        plant = get_object_or_404(UserPlant, id=plant_id)
+        if plant.user != request.user:
+            return Response(
+                {"error": "You do not have permission to edit this plant."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        serializer = UserPlantSerializer(plant, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, plant_id):
+        plant = get_object_or_404(UserPlant, id=plant_id)
+        if plant.user != request.user:
+            return Response(
+                {"error": "You do not have permission to delete this plant."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        plant.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+class ProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        profile, created = Profile.objects.get_or_create(user=request.user)
+        serializer = ProfileSerializer(profile)
+        return Response(serializer.data)
+
+    def put(self, request):
+        profile, created = Profile.objects.get_or_create(user=request.user)
+        serializer = ProfileSerializer(profile, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)    
