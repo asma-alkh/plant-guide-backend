@@ -39,7 +39,7 @@ class Schedule(models.Model):
     plant = models.ForeignKey(Plant, on_delete=models.CASCADE)
     task_name = models.CharField(max_length=100)
     date = models.DateField()
-    day = models.CharField(max_length=20, blank=True, null=True)  # 🆕 أضفنا اليوم هنا
+    day = models.CharField(max_length=20, blank=True, null=True)  
     note = models.TextField(blank=True, null=True)
     is_done = models.BooleanField(default=False)
 
@@ -66,17 +66,6 @@ class Category(models.Model):
     def __str__(self):
         return self.name  
     
-class UserPlant(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_plants')
-    name = models.CharField(max_length=200)
-    description = models.TextField()
-    advice = models.TextField(blank=True, null=True)  
-    image = models.ImageField(upload_to='user_plants/', blank=True, null=True)  
-    category = models.ForeignKey('Category', on_delete=models.SET_NULL, null=True, related_name='user_plants')  
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"{self.name} by {self.user.username}"
 
 
 class Profile(models.Model):

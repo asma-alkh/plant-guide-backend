@@ -2,6 +2,7 @@ from rest_framework.views import APIView
 from django.db import IntegrityError
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.parsers import MultiPartParser, FormParser
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model, authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -10,8 +11,8 @@ from rest_framework.permissions import (
     IsAuthenticated,
     IsAuthenticatedOrReadOnly,
 )
-from .models import Plant, Soil, Favorite, Category,Schedule, UserPlant, Profile
-from .serializers import PlantSerializer, SoilSerializer,FavoriteSerializer,CategorySerializer,ScheduleSerializer, UserPlantSerializer, ProfileSerializer
+from .models import Plant, Soil, Favorite, Category,Schedule, Profile
+from .serializers import PlantSerializer, SoilSerializer,FavoriteSerializer,CategorySerializer,ScheduleSerializer, ProfileSerializer
 
 
 
@@ -313,59 +314,10 @@ class LogoutView(APIView):
                 {"error": "Invalid or missing refresh token."},
                 status=status.HTTP_400_BAD_REQUEST
             )
-class UserPlantIndex(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
-
-    def get(self, request):
-        user_plants = UserPlant.objects.all().order_by('-created_at')
-        serializer = UserPlantSerializer(user_plants, many=True)
-        return Response(serializer.data)
-
-    def post(self, request):
-        if not request.user.is_authenticated:
-            return Response(
-                {"error": "You must log in to add a plant."},
-                status=status.HTTP_401_UNAUTHORIZED
-            )
-        serializer = UserPlantSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(user=request.user)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-class UserPlantDetail(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
-
-    def get(self, request, plant_id):
-        plant = get_object_or_404(UserPlant, id=plant_id)
-        serializer = UserPlantSerializer(plant)
-        return Response(serializer.data)
-
-    def put(self, request, plant_id):
-        plant = get_object_or_404(UserPlant, id=plant_id)
-        if plant.user != request.user:
-            return Response(
-                {"error": "You do not have permission to edit this plant."},
-                status=status.HTTP_403_FORBIDDEN
-            )
-        serializer = UserPlantSerializer(plant, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, plant_id):
-        plant = get_object_or_404(UserPlant, id=plant_id)
-        if plant.user != request.user:
-            return Response(
-                {"error": "You do not have permission to delete this plant."},
-                status=status.HTTP_403_FORBIDDEN
-            )
-        plant.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
 
 class ProfileView(APIView):
     permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]  
 
     def get(self, request):
         profile, created = Profile.objects.get_or_create(user=request.user)
@@ -378,4 +330,4 @@ class ProfileView(APIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)    
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

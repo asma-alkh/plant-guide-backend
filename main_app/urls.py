@@ -3,7 +3,7 @@ from django.urls import path
 from .views import (
     PlantsIndex, PlantDetail, SoilIndex, SoilDetail, FavoriteIndex, FavoriteDetail,
     CategoryIndex, Home, RegisterView, LogInView, LogoutView, ScheduleIndex, ScheduleDetail,
-    UserPlantIndex, UserPlantDetail, ProfileView
+ ProfileView
 )
 
 urlpatterns = [
@@ -20,8 +20,6 @@ urlpatterns = [
     path('signup/', RegisterView.as_view(), name='register'),
     path('login/', LogInView.as_view(), name='login'), 
     path('logout/', LogoutView.as_view(), name='logout'),
-    path('userplants/', UserPlantIndex.as_view(), name='userplants_index'),
-    path('userplants/<int:plant_id>/', UserPlantDetail.as_view(), name='userplants_detail'),
     path("profile/", ProfileView.as_view(), name="profile"),
 
 ]

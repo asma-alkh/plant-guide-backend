@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Plant, Soil, Favorite, Category, Schedule, UserPlant
+from .models import Plant, Soil, Favorite, Category, Schedule
 from django.contrib.auth.models import User
 from .models import Profile
 
@@ -28,8 +28,6 @@ class PlantSerializer(serializers.ModelSerializer):
         ]
 
 # Schedule Serializer
-class ScheduleSerializer(serializers.ModelSerializer):
-    plant_name = serializers.CharField(source='plant.name', read_only=True)
 
 class ScheduleSerializer(serializers.ModelSerializer):
     plant_name = serializers.CharField(source='plant.name', read_only=True)
@@ -59,18 +57,6 @@ class CategorySerializer(serializers.ModelSerializer):
         model = Category  
         fields = "__all__"
 
-class UserPlantSerializer(serializers.ModelSerializer):
-    user = serializers.StringRelatedField(read_only=True) 
-    category = CategorySerializer(read_only=True)
-    category_id = serializers.PrimaryKeyRelatedField(
-        queryset=Category.objects.all(),
-        source='category',
-        write_only=True
-    )
-
-    class Meta:
-        model = UserPlant
-        fields = ['id', 'user', 'name', 'description', 'advice', 'image', 'category', 'category_id', 'created_at']
 
 
 
