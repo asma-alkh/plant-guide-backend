@@ -70,9 +70,3 @@ The backend includes the following main models:
 👉 [Plant Guide Frontend](https://github.com/asma-alkh/plant-guide-frontend)
 
 ---
-
-## 🧰 Installation Instructions
-1. Clone the repository  
-   ```bash
-   git clone https://github.com/asma-alkh/plant-guide-backend.git
-   cd plant-guide-backend
